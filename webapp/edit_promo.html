@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <video playsinline autoplay muted loop poster="">
+        <source src="/media/videos/244fb7b9916aed280fa86e465ba74e2b.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Контейнер для контента -->
+    <div class="container">
+        <div class="base-promocode">
+            <p><span class="label">Название: </span><span class="value" id="promocode_name">...</span></p>
+            <p><span class="label">Тип промокода: </span><span class="value" id="promocode_type">...</span></p>
+            <p><span class="label">Воркер: </span><span class="value" id="user_id">...</span></p>
+        </div>
+        <!-- Управление промокодами -->
+        <h1 class="notifications-label">Управление промокодом</h1>
+        <div class='promo-edit' id="promo-settings">
+            <!-- Настройки будут подгружаться сюда -->
+        </div>
+
+
+
+        <!-- Меню -->
+        <div class="menu">
+            <a id="home-link" href="index.html">
+                <img src="/media/images/free-icon-font-money-check-7928280 1.svg" alt="Promocode Icon">
+            </a>
+            <a id="promocode-link" href="">
+                <img src="/media/images/free-icon-font-shield-check-3917625 1.svg" alt="Security Icon">
+            </a>
+            <a id="bag-link" href="#bag">
+                <img src="/media/images/free-icon-font-briefcase-3916670 1.svg" alt="Bag Icon">
+            </a>
+            <a id="scroll-link" href="#scroll">
+                <img src="/media/images/free-icon-font-list-3917113 1.svg" alt="Scroll Icon">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const params1 = new URLSearchParams(window.location.search);
+        const id = params1.get('id');
+
+        // Если id существует, обновляем ссылки
+        if (id) {
+            document.getElementById('home-link').href = `/?id=${id}`;
+            document.getElementById('promocode-link').href = `../promocode.html/?id=${id}`;
+            document.getElementById('bag-link').href = `../admins.html/?id=${id}`;
+            document.getElementById('scroll-link').href = `../information.html/?id=${id}`;
+        }
+    </script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const promocodeId = params.get('promocodeId');
+        
+
+        // Функция для загрузки промокодов
+        async function loadPromocode() {
+            const params1 = new URLSearchParams(window.location.search);
+            const user_id = params1.get('id');
+            try {
+                if (promocodeId) {
+                    // Запрос к вашему API для получения данных о промокоде
+                    const response = await fetch(`/promocode/${promocodeId}`);
+                    
+                    // Проверка на успешность ответа
+                    if (!response.ok) {
+                        throw new Error(`Ошибка HTTP: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const type = data.type;
+                    let typeText;
+                    if (type === 1) {
+                        typeText = 'Cinema';
+                        loadAntiKinoSettings();
+                    }
+                    if (type === 2) {
+                        typeText = 'Theatre';
+                        loadAntiTheatreSettings();
+                    } 
+                    if (type === 3) {
+                        typeText = 'Exhibitions';
+                        loadExhibitionSettings();
+                    } if  (type === 4) {
+                        typeText = 'Тrade';
+                        loadTradeSettings();
+                    } if (type === 5) {
+                        typeText = 'BlaBlaCar';
+                        loadBlaBlaCarSettings();
+                    }
+                    // Обновление содержимого HTML элементов с данными промокода
+                    document.getElementById('promocode_name').textContent = data.name || 'Неизвестно';
+                    document.getElementById('promocode_type').textContent = typeText || 'Неизвестно';
+                    document.getElementById('user_id').textContent = user_id || 'Неизвестно'
+                } else {
+                    console.error('Промокод ID не найден в параметрах URL');
+                }
+            } catch (error) {
+                console.error('Ошибка при получении промокода:', error);
+            }
+        }
+
+        loadPromocode();
+
+        async function loadAntiKinoSettings() {
+            const container = document.getElementById('promo-settings');
+            const params = new URLSearchParams(window.location.search);
+            const promocodeId = params.get('promocodeId');
+
+            // Загружаем текущие настройки промокода с сервера
+            let config;
+            try {
+                const response = await fetch(`/promocode/${promocodeId}`);
+                const promocodeData = await response.json();
+                console.log('Полученные данные промокода:', promocodeData);
+
+                // Преобразуем JSON строку в объект
+                try {
+                    config = JSON.parse(promocodeData.config);
+                    console.log('Распарсенный конфиг:', config);
+                } catch (jsonError) {
+                    console.error('Ошибка парсинга JSON:', jsonError);
+                    alert('Ошибка обработки данных конфигурации');
+                    return;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                alert('Ошибка при загрузке настроек');
+                return;
+            }
+
+            // Отображение настроек
+            container.innerHTML = `
+                <h2>Настройки Кинотеатр</h2>
+                <label>Страна промокода</label>
+                <select id="country">
+                    <option value="UE">Украина UE</option>
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="EU">Европа EU</option>
+                </select>
+                <label>Язык сайта</label>
+                <select id="language">
+                    <option value="RU">Россия RU</option>
+                    c
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="PL">Польский PL</option>
+                    <option value="EN">Английский EN</option>
+                </select>
+                <label>Валюта</label>
+                <select id="currency">
+                    <option value="RUB">RUB</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="UAH">UAH</option>
+                    <option value="KZT">KZT</option>
+                    <option value="AZN">AZN</option>
+                    <option value="PLN">PLN</option>
+                </select>
+                <button class="save-button" id="saveSettingsAntikino">Сохранить изменения</button>
+                <button>Изменить предпросмотр</button>
+                <div class="modal-block">
+                    <button class="open-modal" data-modal="address">Изменить адрес и цену</button>
+                    <div class="modal modal-address">
+                        <div class="modal-content">
+                            <span class="close">X</span>
+                            <label for="room-select">Выберите комнату:</label>
+                            <select id="room-select">
+                                <option value="0">Комната 1</option>
+                                <option value="1">Комната 2</option>
+                                <option value="2">Комната 3</option>
+                            </select>
+                            <input type="text" id="new-address" placeholder="Введите новый адрес">
+                            <input type="number" id="new-price" placeholder="Введите новую цену">
+                            
+                            <!-- Секция для отображения добавленных услуг -->
+                            <h3>Дополнительные услуги</h3>
+                            <div class='service_list' id="service-list"></div>
+
+                            <!-- Кнопка для добавления новой услуги -->
+                            <button id="show-add-service-btn">+ Добавить услугу</button>
+
+                            <!-- Поля для добавления новой услуги, скрытые по умолчанию -->
+                            <div id="add-service-container" style="display: none;">
+                                <input type="text" id="new-service-name" placeholder="Название услуги">
+                                <input type="number" id="new-service-price" placeholder="Цена услуги">
+                                <button id="save-service-btn">Сохранить услугу</button>
+                            </div>
+
+                            <button class="save" data-modal="address">Сохранить</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Установка значений из конфига
+            document.getElementById('country').value = config.country;
+            document.getElementById('language').value = config.language;
+            document.getElementById('currency').value = config.currency;
+
+            // Проверяем наличие комнат в конфиге
+            const roomSelect = document.getElementById('room-select');
+            const addressInput = document.getElementById('new-address');
+            const priceInput = document.getElementById('new-price');
+            
+            if (config.rooms && config.rooms.length > 0) {
+                console.log('Комнаты найдены:', config.rooms);
+
+                // Устанавливаем данные для первой комнаты при загрузке
+                setRoomData(0);
+
+                roomSelect.addEventListener('change', function () {
+                    const selectedRoomIndex = roomSelect.value;
+                    console.log('Выбрана комната:', selectedRoomIndex);
+                    setRoomData(selectedRoomIndex);
+                });
+
+                function setRoomData(roomIndex) {
+                    const room = config.rooms[roomIndex];
+                    if (room) {
+                        console.log('Данные для комнаты:', room);
+                        addressInput.value = room.address || '';
+                        priceInput.value = room.price || '';
+                        renderServices(room.services || []); // Отображаем услуги для выбранной комнаты
+                    } else {
+                        console.warn(`Комната с индексом ${roomIndex} не найдена`);
+                        addressInput.value = '';
+                        priceInput.value = '';
+                    }
+                }
+            } else {
+                console.warn('Комнаты не найдены в конфиге');
+                addressInput.value = '';
+            }
+
+            // Сохранение настроек
+            document.getElementById('saveSettingsAntikino').addEventListener('click', async () => {
+                const country = document.getElementById('country').value;
+                const language = document.getElementById('language').value;
+                const currency = document.getElementById('currency').value;
+
+                const settingsData = {
+                    country: country,
+                    language: language,
+                    currency: currency
+                };
+
+                try {
+                    const response = await fetch(`/promocodeUpdateAntikino/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки успешно обновлены");
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            });
+
+            // Обработчики для модальных окон
+            document.querySelectorAll('.open-modal').forEach(button => {
+                button.addEventListener('click', function () {
+                    const modalType = this.getAttribute('data-modal');
+                    document.querySelector(`.modal-${modalType}`).style.display = 'block';
+                });
+            });
+
+            document.querySelectorAll('.close').forEach(button => {
+                button.addEventListener('click', function () {
+                    this.closest('.modal').style.display = 'none';
+                });
+            });
+
+            window.addEventListener('click', function (event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
+            });
+
+            let services = [];
+            // Функция для отображения услуг в интерфейсе
+            // Внутри функции renderServices
+            function renderServices(services) {
+                const serviceList = document.getElementById('service-list');
+                serviceList.innerHTML = ''; // Очищаем предыдущие услуги
+
+                services.forEach((service, index) => {
+                    const serviceElement = document.createElement('div');
+                    serviceElement.classList.add('service-item');
+                    serviceElement.innerHTML = `
+                        <span>${service.name}: ${service.price}</span>
+                        <button class="delete-service" data-index="${index}">🗑️</button>
+                    `;
+                    serviceList.appendChild(serviceElement);
+
+                    // Логика удаления услуги
+                    serviceElement.querySelector('.delete-service').addEventListener('click', async function () {
+                        const serviceIndex = parseInt(this.getAttribute('data-index')); // Получаем индекс из data-атрибута
+                        const serviceName = services[serviceIndex].name; // Сохраняем имя услуги перед удалением
+
+                        // Удаляем услугу из массива
+                        services.splice(serviceIndex, 1); 
+                        renderServices(services); // Перерисовываем услуги
+
+                        // Удаление услуги на сервере
+                        try {
+                            const response = await fetch(`/promocodeDeleteAntikinoService/${promocodeId}`, {
+                                method: 'POST', // Используйте метод POST
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ room: serviceIndex, name: serviceName }) // Используйте сохраненное имя услуги
+                            });
+
+                            if (!response.ok) {
+                                throw new Error('Ошибка при удалении услуги');
+                            }
+
+                            const result = await response.json();
+                            console.log('Услуга успешно удалена:', result);
+                            alert('Услуга успешно удалена!');
+
+                        } catch (error) {
+                            console.error('Ошибка:', error);
+                            alert('Ошибка при удалении услуги: ' + error.message);
+                        }
+                    });
+
+                });
+            }
+
+
+            // Логика для показа полей добавления новой услуги
+            const showAddServiceBtn = document.getElementById('show-add-service-btn');
+            const addServiceContainer = document.getElementById('add-service-container');
+            const saveServiceBtn = document.getElementById('save-service-btn');
+
+            showAddServiceBtn.addEventListener('click', () => {
+                addServiceContainer.style.display = 'block';
+                showAddServiceBtn.style.display = 'none';
+            });
+
+            // Добавление новой услуги
+            saveServiceBtn.addEventListener('click', async function () {
+                const roomIndex = document.getElementById('room-select').value;
+                const serviceName = document.getElementById('new-service-name').value;
+                const servicePrice = document.getElementById('new-service-price').value;
+
+                if (serviceName && servicePrice) {
+                    const newService = {
+                        room: roomIndex,
+                        name: serviceName,
+                        price: servicePrice
+                    }
+                    config.rooms[roomIndex].services = config.rooms[roomIndex].services || [];
+                    config.rooms[roomIndex].services.push(newService);
+                    renderServices(config.rooms[roomIndex].services); // Обновляем список услуг
+                    try {
+                    const response = await fetch(`/promocodeUpdateAntikinoServices/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newService)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при сохранении данных');
+                    }
+
+                    const result = await response.json();
+                    console.log('Данные успешно сохранены:', result);
+                    alert('Данные успешно сохранены!');
+
+                    // Закрытие модального окна
+                    document.querySelector(`.modal-address`).style.display = 'none';
+
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('Ошибка при сохранении данных: ' + error.message);
+                }
+                    // Очищаем поля ввода
+                    document.getElementById('new-service-name').value = '';
+                    document.getElementById('new-service-price').value = '';
+
+                    // Скрываем контейнер добавления услуги
+                    addServiceContainer.style.display = 'none';
+                    showAddServiceBtn.style.display = 'block';
+                } else {
+                    alert('Пожалуйста, заполните все поля!');
+                }
+            });
+
+            // Сохранение данных для комнаты и закрытие окна
+            document.querySelector('.save[data-modal="address"]').addEventListener('click', async function () {
+                const selectedRoomIndex = document.getElementById('room-select').value;
+                const newAddress = document.getElementById('new-address').value;
+                const newPrice = document.getElementById('new-price').value;
+
+                const payload = {
+                    roomIndex: selectedRoomIndex,
+                    address: newAddress,
+                    price: newPrice,
+                    services: config.rooms[selectedRoomIndex].services // Добавляем услуги
+                };
+
+                try {
+                    const response = await fetch(`/promocodeUpdateAntikinoRoom/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Ошибка при сохранении данных');
+                    }
+
+                    const result = await response.json();
+                    console.log('Данные успешно сохранены:', result);
+                    alert('Данные успешно сохранены!');
+
+                    // Закрытие модального окна
+                    document.querySelector(`.modal-address`).style.display = 'none';
+
+                } catch (error) {
+                    console.error('Ошибка:', error);
+                    alert('Ошибка при сохранении данных: ' + error.message);
+                }
+            });
+        }
+
+
+        async function loadAntiTheatreSettings() {
+            // Функция для открытия модального окна
+            window.openModal = function(modalSelector) {
+                const modal = document.querySelector(modalSelector);
+                if (modal) {
+                    modal.style.display = "block";
+                }
+            }
+
+            // Функция для закрытия модального окна
+            window.closeModal = function(modalSelector) {
+                const modal = document.querySelector(modalSelector);
+                if (modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            const container = document.getElementById('promo-settings');
+            const params = new URLSearchParams(window.location.search);
+            const promocodeId = params.get('promocodeId');
+
+            // Загружаем текущие настройки промокода с сервера
+            let config;
+            try {
+                const response = await fetch(`/promocode/${promocodeId}`);
+                const promocodeData = await response.json();
+                console.log('Полученные данные промокода:', promocodeData);
+
+                // Преобразуем JSON строку в объект
+                try {
+                    config = JSON.parse(promocodeData.config);
+                    console.log('Распарсенный конфиг:', config);
+                } catch (jsonError) {
+                    console.error('Ошибка парсинга JSON:', jsonError);
+                    alert('Ошибка обработки данных конфигурации');
+                    return;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                alert('Ошибка при загрузке настроек');
+                return;
+            }
+
+            container.innerHTML = `
+                <h2>Настройки Театра</h2>
+                <label>Страна промокода</label>
+                <select id="country">
+                    <option value="UE">Украина UE</option>
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="EU">Европа EU</option>
+                </select>
+                <label>Язык сайта</label>
+                <select id="language">
+                    <option value="RU">Россия RU</option>
+                    <option value="UE">Украина UE</option>
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="PL">Польский PL</option>
+                    <option value="EN">Английский EN</option>
+                </select>
+                <label>Валюта</label>
+                <select id="currency">
+                    <option value="RUB">RUB</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="UAH">UAH</option>
+                    <option value="KZT">KZT</option>
+                    <option value="AZN">AZN</option>
+                    <option value="PLN">PLN</option>
+                </select>
+                <button class="save-button" id="saveSettingsAntiTheatre">Сохранить изменения</button>
+
+                <!-- Кнопки для открытия модальных окон -->
+                <button id="openPricesModal">Настроить цены</button>
+                <button id="openSeatsModal">Настроить свободные места</button>
+
+                <!-- Модальное окно для настройки цен -->
+                <div class="modal modal-prices" style="display:none;">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeModal('.modal-prices')">X</span>
+                        <h2>Настройки цен</h2>
+                        <div>
+                            <label for="price-row-1">Цена 1st:</label>
+                            <input type="number" id="price-row-1" placeholder="Введите цену" />
+                        </div>
+                        <div>
+                            <label for="price-row-2">Цена 2nd:</label>
+                            <input type="number" id="price-row-2" placeholder="Введите цену" />
+                        </div>
+                        <div>
+                            <label for="price-row-3">Цена 3rd:</label>
+                            <input type="number" id="price-row-3" placeholder="Введите цену" />
+                        </div>
+                        <div>
+                            <label for="price-loja">Цена VIP:</label>
+                            <input type="number" id="price-loja" placeholder="Введите цену" />
+                        </div>
+                        <button id="savePricesSettings">Сохранить настройки</button>
+                    </div>
+                </div>
+
+                <!-- Модальное окно для настройки свободных мест -->
+                <div class="modal modal-seats" style="display:none;">
+                    <div class="modal-content">
+                        <span class="close" onclick="closeModal('.modal-seats')">X</span>
+                        <h2>Настройки свободных мест</h2>
+                        <div>
+                            <label for="seats-slider">Свободность мест (%): <span id="seats-value">50</span>%</label>
+                            <input type="range" id="seats-slider" min="0" max="100" value="50" />
+                        </div>
+                        <button id="saveSeatsSettings">Сохранить настройки</button>
+                    </div>
+                </div>
+            `;
+
+            // Установка значений из конфига
+            document.getElementById('country').value = config.country;
+            document.getElementById('language').value = config.language;
+            document.getElementById('currency').value = config.currency;
+            const prices = config.prices;
+            document.getElementById('price-row-1').value = prices["1st"];
+            document.getElementById('price-row-2').value = prices["2nd"];
+            document.getElementById('price-row-3').value = prices["3rd"];
+            document.getElementById('price-loja').value = prices["Vip"];
+            const seatsSlider = document.getElementById('seats-slider');
+            seatsSlider.value = config.seats; // Установка значения слайдера
+            document.getElementById('seats-value').innerText = config.seats;
+
+            async function savePricesSettings() {
+                const prices = {
+                    "1st": parseInt(document.getElementById('price-row-1').value) || 0,
+                    "2n": parseInt(document.getElementById('price-row-2').value) || 0,
+                    "3rd": parseInt(document.getElementById('price-row-3').value) || 0,
+                    "Vip": parseInt(document.getElementById('price-loja').value) || 0
+                };
+
+                const settingsData = { prices: prices }; // Оберните prices в объект
+
+                try {
+                    const response = await fetch(`/updatePricesTheatre/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData) // Сериализация в JSON
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки цен успешно обновлены");
+                        closeModal('.modal-prices'); // Закрытие модального окна
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            }
+
+            // Сохранение настроек свободных мест
+            async function saveSeatsSettings() {
+                const seats = parseInt(document.getElementById('seats-slider').value) || 0;
+
+                const settingsData = { seats: seats };
+
+                try {
+                    const response = await fetch(`/updateSeatsTheatre/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки свободных мест успешно обновлены");
+                        closeModal('.modal-seats'); // Закрытие модального окна
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            }
+
+            // Добавление обработчиков событий для кнопок сохранения
+            document.getElementById('savePricesSettings').addEventListener('click', savePricesSettings);
+            document.getElementById('saveSeatsSettings').addEventListener('click', saveSeatsSettings);
+
+
+            // Сохранение настроек
+            document.getElementById('saveSettingsAntiTheatre').addEventListener('click', async () => {
+                const country = document.getElementById('country').value;
+                const language = document.getElementById('language').value;
+                const currency = document.getElementById('currency').value;
+
+                const settingsData = {
+                    country: country,
+                    language: language,
+                    currency: currency
+                };
+
+                try {
+                    const response = await fetch(`/promocodeUpdateAntikino/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки успешно обновлены");
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            });
+
+            // Обработчик для слайдера
+            document.getElementById('seats-slider').addEventListener('input', function() {
+                document.getElementById('seats-value').innerText = this.value;
+            });
+
+            // Открытие модальных окон
+            document.getElementById('openPricesModal').addEventListener('click', () => openModal('.modal-prices'));
+            document.getElementById('openSeatsModal').addEventListener('click', () => openModal('.modal-seats'));
+        }
+
+
+        async function loadExhibitionSettings() {
+            // Функция для открытия модального окна
+            window.openModal = function(modalSelector) {
+                const modal = document.querySelector(modalSelector);
+                if (modal) {
+                    modal.style.display = "block";
+                }
+            }
+
+            // Функция для закрытия модального окна
+            window.closeModal = function(modalSelector) {
+                const modal = document.querySelector(modalSelector);
+                if (modal) {
+                    modal.style.display = "none";
+                }
+            }
+
+            const container = document.getElementById('promo-settings');
+            const params = new URLSearchParams(window.location.search);
+            const promocodeId = params.get('promocodeId');
+
+            // Загружаем текущие настройки промокода с сервера
+            let config;
+            try {
+                const response = await fetch(`/promocode/${promocodeId}`);
+                const promocodeData = await response.json();
+                console.log('Полученные данные промокода:', promocodeData);
+
+                // Преобразуем JSON строку в объект
+                try {
+                    config = JSON.parse(promocodeData.config);
+                    console.log('Распарсенный конфиг:', config);
+                } catch (jsonError) {
+                    console.error('Ошибка парсинга JSON:', jsonError);
+                    alert('Ошибка обработки данных конфигурации');
+                    return;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                alert('Ошибка при загрузке настроек');
+                return;
+            }
+
+            container.innerHTML = `
+                <h2>Настройки Выставки</h2>
+                <label>Страна промокода</label>
+                <select id="country">
+                    <option value="UE">Украина UE</option>
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="EU">Европа EU</option>
+                </select>
+                <label>Язык сайта</label>
+                <select id="language">
+                    <option value="RU">Россия RU</option>
+                    <option value="UE">Украина UE</option>
+                    <option value="KZ">Казахстан KZ</option>
+                    <option value="AZ">Азербайджан AZ</option>
+                    <option value="PL">Польский PL</option>
+                    <option value="EN">Английский EN</option>
+                </select>
+                <label>Валюта</label>
+                <select id="currency">
+                    <option value="RUB">RUB</option>
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="UAH">UAH</option>
+                    <option value="KZT">KZT</option>
+                    <option value="AZN">AZN</option>
+                    <option value="PLN">PLN</option>
+                </select>
+                <button class="save-button" id="saveSettingsAntiExhibition">Сохранить изменения</button>
+                <button id="openExhibitionModal">Настроить выставки</button>
+
+                <!-- Модальное окно для добавления выставок -->
+                <div class="modal modal-exhibition" style="display:none;">
+                    <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                        <span class="close" onclick="closeModal('.modal-exhibition')">X</span>
+                        <h2>Настройка выставок</h2>
+                        <div id="exhibition-list">
+                            <!-- Здесь будут динамически добавляться выставки -->
+                        </div>
+                        <button id="addExhibition">Добавить выставку</button>
+                        <button id="saveExhibitions">Сохранить выставки</button>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('country').value = config.country;
+            document.getElementById('language').value = config.language;
+            document.getElementById('currency').value = config.currency;
+            
+
+            
+            let exhibitionCount = config.exhibitions ? config.exhibitions.length : 0;
+
+            // Функция для отображения существующих выставок как текста
+            function renderExhibitions(exhibitions) {
+                const exhibitionList = document.getElementById('exhibition-list');
+                exhibitionList.innerHTML = ''; // Очищаем перед добавлением выставок
+                exhibitions.forEach((exhibition, index) => {
+                    const exhibitionDiv = document.createElement('div');
+                    exhibitionDiv.className = 'exhibition-item';
+                    exhibitionDiv.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3>Выставка ${index + 1}</h3>
+                                <p><strong>Название:</strong> ${exhibition.name}</p>
+                                <p><strong>Описание:</strong> ${exhibition.description}</p>
+                                <p><strong>Цена билета:</strong> ${exhibition.price}</p>
+                                <p><strong>Количество оставшихся билетов:</strong> ${exhibition.tickets}</p>
+                            </div>
+                            <button class="remove-exhibition" data-index="${index}">Удалить</button>
+                        </div>
+                    `;
+                    exhibitionList.appendChild(exhibitionDiv);
+
+                    // Добавляем обработчик для удаления выставки
+                    exhibitionDiv.querySelector('.remove-exhibition').addEventListener('click', async () => {
+                        const confirmed = confirm("Вы уверены, что хотите удалить эту выставку?");
+                        if (confirmed) {
+                            const indexToRemove = exhibitionDiv.querySelector('.remove-exhibition').dataset.index;
+
+                            // Удаляем выставку локально
+                            exhibitionDiv.remove();
+                            exhibitionCount--;
+
+                            // Обновляем выставки на сервере
+                            try {
+                                const response = await fetch(`/removeExhibition/${promocodeId}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({ index: parseInt(indexToRemove) }) // Преобразуем в число
+                                });
+
+                                const result = await response.json();
+                                if (response.ok) {
+                                    alert("Выставка успешно удалена");
+                                } else {
+                                    alert("Ошибка: " + result.message);
+                                }
+                            } catch (error) {
+                                alert("Ошибка сети: " + error.message);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Открытие модального окна для выставок
+            document.getElementById('openExhibitionModal').addEventListener('click', () => {
+                renderExhibitions(config.exhibitions || []); // Вызов функции для отображения выставок
+                openModal('.modal-exhibition');
+            });
+
+            // Функция для добавления новой выставки
+            function addExhibition() {
+                if (exhibitionCount >= 3) {
+                    alert("Нельзя добавить больше 3 выставок");
+                    return;
+                }
+
+                exhibitionCount++;
+                const exhibitionList = document.getElementById('exhibition-list');
+                const exhibitionDiv = document.createElement('div');
+                exhibitionDiv.className = 'exhibition-item';
+                exhibitionDiv.innerHTML = `
+                    <h3>Выставка ${exhibitionCount}</h3>
+                    <label>URL фото:</label>
+                    <input type="text" class="exhibition-photo" placeholder="Введите URL фото" />
+                    <label>Название:</label>
+                    <input type="text" class="exhibition-title" placeholder="Введите название" />
+                    <label>Описание:</label>
+                    <textarea class="exhibition-description" placeholder="Введите описание"></textarea>
+                    <label>Цена билета:</label>
+                    <input type="number" class="exhibition-price" placeholder="Введите цену" />
+                    <label>Количество оставшихся билетов:</label>
+                    <input type="number" class="exhibition-tickets" placeholder="Введите количество" />
+                `;
+                exhibitionList.appendChild(exhibitionDiv);
+            }
+
+            // Добавление новой выставки
+            document.getElementById('addExhibition').addEventListener('click', addExhibition);
+
+            // Сохранение выставок
+            document.getElementById('saveExhibitions').addEventListener('click', async () => {
+                const exhibitions = [];
+
+                // Сначала добавляем существующие выставки
+                if (config.exhibitions) {
+                    config.exhibitions.forEach(exhibition => {
+                        exhibitions.push({
+                            name: exhibition.name,
+                            description: exhibition.description,
+                            photo: exhibition.photo,
+                            price: exhibition.price,
+                            tickets: exhibition.tickets
+                        });
+                    });
+                }
+
+                // Затем собираем новые выставки только из динамически добавленных элементов
+                document.querySelectorAll('.exhibition-item').forEach((item) => {
+                    const photoInput = item.querySelector('.exhibition-photo');
+                    const titleInput = item.querySelector('.exhibition-title');
+                    const descriptionInput = item.querySelector('.exhibition-description');
+                    const priceInput = item.querySelector('.exhibition-price');
+                    const ticketsInput = item.querySelector('.exhibition-tickets');
+
+                    // Проверяем, есть ли элемент с новым содержимым, который нужно сохранить
+                    if (titleInput) {
+                        const photo = photoInput ? photoInput.value : '';
+                        const title = titleInput.value;
+                        const description = descriptionInput ? descriptionInput.value : '';
+                        const price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+                        const tickets = parseInt(ticketsInput ? ticketsInput.value : 0) || 0;
+
+                        // Добавляем новую выставку, только если есть название и общее количество не превышает 3
+                        if (title && exhibitions.length < 3) {
+                            exhibitions.push({
+                                name: title,
+                                description: description,
+                                photo: photo,
+                                price: price,
+                                tickets: tickets
+                            });
+                        }
+                    }
+                });
+
+                try {
+                    const response = await fetch(`/updateExhibtions/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ exhibitions })
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Выставки успешно сохранены");
+                        closeModal('.modal-exhibition');
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            });
+        }
+
+
+        // Функция для загрузки настроек Трейд
+        async function loadTradeSettings() {
+            const container = document.getElementById('promo-settings');
+            const params = new URLSearchParams(window.location.search);
+            const promocodeId = params.get('promocodeId');
+
+            // Загружаем текущие настройки промокода с сервера
+            let config;
+            let promocodeData;
+            try {
+                const response = await fetch(`/promocode/${promocodeId}`);
+                promocodeData = await response.json();
+                console.log('Полученные данные промокода:', promocodeData);
+
+                // Преобразуем JSON строку в объект
+                try {
+                    config = JSON.parse(promocodeData.config);
+                    console.log('Распарсенный конфиг:', config);
+                } catch (jsonError) {
+                    console.error('Ошибка парсинга JSON:', jsonError);
+                    alert('Ошибка обработки данных конфигурации');
+                    return;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                alert('Ошибка при загрузке настроек');
+                return;
+            }
+
+            container.innerHTML = `
+                <h2>Настройки Трейд</h2>
+                <label>Язык сайта</label>
+                <select id="language">
+                    <option value="EN">Английский EN</option>
+                    <option value="DE">Немецкий DE</option>
+                    <option value="RU">Русский RU</option>
+                    <option value="UA">Украинский UA</option>
+                    <option value="KZ">Казахстанский KZ</option>
+                    <option value="AZ">Азербайджанский AZ</option>
+                </select>
+                <label>Валюта</label>
+                <select id="currency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="RUB">RUB</option>                      
+                    <option value="UAH">UAH</option>
+                    <option value="AED">AED</option>
+                    <option value="KZT">KZT</option>
+                    <option value="AZN">AZN</option>                    
+                </select>
+                <button class="save-button" id="saveSettingsTrade">Сохранить изменения</button>
+                <!-- Кнопка открытия модального окна -->
+                <button id="manageMammothsBtn">Управление рефералами</button>
+
+                <!-- Модальное окно -->
+                <div id="manageMammothsModal" class="modal" style="display: none;">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <h2>Управление рефералами</h2>
+                        
+                        <!-- Поле для поиска пользователей -->
+                        <input type="text" id="searchUserInput" placeholder="Введите ID пользователя">
+                        <button id="searchUserBtn">Найти пользователя</button>
+                        
+                        <!-- Список пользователей -->
+                        <ul id="userList"></ul>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('language').value = config.language;
+            document.getElementById('currency').value = config.currency;
+            document.getElementById('manageMammothsBtn').addEventListener('click', openModal);
+            document.getElementById('searchUserBtn').addEventListener('click', searchUser);
+
+            const modal = document.getElementById('manageMammothsModal');
+            const closeModal = document.querySelector('.close');
+
+            // Открытие модального окна
+            function openModal() {
+                modal.style.display = 'block';
+                loadUsers(); 
+            }
+
+            // Закрытие модального окна
+            closeModal.onclick = function () {
+                modal.style.display = 'none';
+            };
+
+            // Закрытие при клике вне окна
+            window.onclick = function (event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+
+            // Функция для загрузки всех пользователей
+            async function loadUsers() {
+                const userList = document.getElementById('userList');
+
+                // Проверка, существует ли элемент userList
+                if (!userList) {
+                    console.error('Контейнер для списка пользователей не найден');
+                    return;
+                }
+
+                const params = new URLSearchParams(window.location.search);
+                const promocodeId = params.get('promocodeId');
+                let promocodeData;
+
+                try {
+                    const response = await fetch(`/promocode/${promocodeId}`);
+                    promocodeData = await response.json();
+
+                    const refererId = promocodeData.user_id;
+                    if (!refererId) {
+                        console.error('ID реферера не найден в конфиге');
+                        alert('ID реферера не найден');
+                        return;
+                    }
+
+                    const usersResponse = await fetch(`/promo_get_trade_users/${refererId}`);
+                    const data = await usersResponse.json();
+
+                    // Очистка списка пользователей
+                    userList.innerHTML = '';
+
+                    // Добавляем каждого пользователя в список
+                    for (const [userId, user] of Object.entries(data.users)) {
+                        const li = document.createElement('li');
+                        li.innerHTML = `ID: ${userId}, Username: ${user.username} <button class="selectUserBtn" data-id="${userId}">Выбрать</button>`;
+                        userList.appendChild(li);
+
+                        // Добавляем обработчик события для кнопки выбора пользователя
+                        li.querySelector('.selectUserBtn').addEventListener('click', () => openUserMenu(userId));
+                    }
+                } catch (error) {
+                    console.error('Ошибка загрузки пользователей:', error);
+                    alert('Ошибка при загрузке списка пользователей');
+                }
+            }
+
+
+            // Функция поиска пользователя по ID
+            async function searchUser() {
+                const searchInput = document.getElementById('searchUserInput').value;
+                if (searchInput) {
+                    openUserMenu(searchInput); // Переход к редактированию найденного пользователя
+                } else {
+                    alert('Введите ID пользователя');
+                }
+            }
+
+
+            // Функция для открытия меню пользователя с информацией
+            async function openUserMenu(userId) {
+                try {
+                    const response = await fetch(`/promo_trade_get_user/${userId}`);
+                    if (!response.ok) {
+                        console.error('Ошибка при получении данных о пользователе:', response.statusText);
+                        alert('Такого пользователя нет!');
+                        return false;  // Если запрос не удался, возвращаем false
+                    }
+
+                    const userData = await response.json();
+
+                    // Проверяем, существуют ли данные пользователя
+                    if (!userData || !userData.username) {
+                        console.error('Пользователь не найден');
+                        return false;  // Если пользователь не найден, возвращаем false
+                    }
+
+                    // Открываем модальное окно с информацией о пользователе
+                    const userMenu = document.createElement('div');
+                    userMenu.className = 'user-menu';
+                    userMenu.innerHTML = `
+                        <button id="backToListBtn">Назад к списку</button>  <!-- Кнопка "Назад" -->
+                        <h3>Пользователь: ${userData.username}</h3>
+                        <label><strong>Баланс:</strong></label>
+                        <input type="number" id="balanceInput" value="${userData.balance}">
+                        <label><strong>Мин. вывод:</strong></label>
+                        <input type="number" id="minWithdrawInput" value="${userData.min_withdraw}">
+                        <label><strong>Удача:</strong></label>
+                        <div class="luck-container">
+                            <input type="range" id="luckSlider" min="0" max="100" value="${userData.luck}">
+                            <span id="luckValue">${userData.luck}%</span>
+                        </div>
+                        <!-- Тумблер блокировки пользователя -->
+                        <label><strong>Заблокировать пользователя:</strong></label>
+                        <label class="switch">
+                            <input type="checkbox" id="isBlockedCheckbox" ${userData.is_blocked ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        <!-- Тумблер верификации пользователя -->
+                        <label><strong>Верифицирован:</strong></label>
+                        <label class="switch">
+                            <input type="checkbox" id="isVerifiedCheckbox" ${userData.is_verified ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        <!-- Тумблер разрешения вывода -->
+                        <label><strong>Разрешение вывода:</strong></label>
+                        <label class="switch">
+                            <input type="checkbox" id="isWithdrawCheckbox" ${userData.is_withdraw ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                        
+                        <button id="saveUserChangesBtn">Сохранить изменения</button>
+                        <button id="viewUserStatsBtn">Открыть статистику</button>
+                    `;
+
+                    // Очистка и добавление меню в модальное окно
+                    modal.querySelector('.modal-content').innerHTML = '';
+                    modal.querySelector('.modal-content').appendChild(userMenu);
+
+                    // Назад к списку пользователей
+                    document.getElementById('backToListBtn').addEventListener('click', async () => {
+                        // Очищаем содержимое модального окна
+                        modal.querySelector('.modal-content').innerHTML = ''; // Очистка текущего содержимого
+                        
+                        // Восстанавливаем заголовок и элементы управления
+                        const header = document.createElement('h2');
+                        header.innerText = 'Управление пользователями';
+                        
+                        const searchInput = document.createElement('input');
+                        searchInput.type = 'text';
+                        searchInput.id = 'searchUserInput';
+                        searchInput.placeholder = 'Введите ID пользователя';
+                        
+                        const searchButton = document.createElement('button');
+                        searchButton.id = 'searchUserBtn';
+                        searchButton.innerText = 'Найти пользователя';
+                        
+                        // Создаем новый контейнер для списка пользователей
+                        const newUserList = document.createElement('ul');
+                        newUserList.id = 'userList';
+                        
+                        // Добавляем все элементы в модальное окно
+                        const modalContent = modal.querySelector('.modal-content');
+                        modalContent.appendChild(header);
+                        modalContent.appendChild(searchInput);
+                        modalContent.appendChild(searchButton);
+                        modalContent.appendChild(newUserList);
+                        
+                        // Загружаем список пользователей
+                        await loadUsers(); // Загрузить список пользователей
+
+                        // Привязываем обработчик события к кнопке поиска
+                        searchButton.addEventListener('click', searchUser);
+                    });
+
+
+                    // Обновляем значение отображаемого слайдера
+                    document.getElementById('luckSlider').addEventListener('input', function () {
+                        document.getElementById('luckValue').innerText = `${this.value}%`;
+                    });
+
+                    // Сохраняем изменения пользователя
+                    document.getElementById('saveUserChangesBtn').addEventListener('click', async () => {
+                        await saveUserChanges(userId);
+                    });
+
+                    // Открываем статистику пользователя
+                    document.getElementById('viewUserStatsBtn').addEventListener('click', async () => {
+                        await viewUserStatistics(userId);
+                    });
+
+                    return true;  // Если все успешно, возвращаем true
+
+                } catch (error) {
+                    console.error('Ошибка при загрузке информации о пользователе:', error);
+                    alert('Ошибка при загрузке информации о пользователе');
+                    return false;  // Если произошла ошибка, возвращаем false
+                }
+            }
+
+
+
+            // Функция для сохранения изменений пользователя
+            async function saveUserChanges(userId) {
+                const balance = document.getElementById('balanceInput').value;
+                const minWithdraw = document.getElementById('minWithdrawInput').value;
+                const luck = document.getElementById('luckSlider').value;
+                const isBlocked = document.getElementById('isBlockedCheckbox').checked;
+                const isVerified = document.getElementById('isVerifiedCheckbox').checked;
+
+                // Проверяем, существует ли элемент isWithdrawCheckbox
+                let isWithdraw = false;
+                const isWithdrawCheckbox = document.getElementById('isWithdrawCheckbox');
+                if (isWithdrawCheckbox) {
+                    isWithdraw = isWithdrawCheckbox.checked;
+                }
+
+                const updatedUserData = {
+                    balance: balance,
+                    min_withdraw: minWithdraw,
+                    luck: luck,
+                    is_blocked: isBlocked,
+                    is_verified: isVerified,
+                    is_withdraw: isWithdraw  // Добавляем только если элемент существует
+                };
+
+                try {
+                    const response = await fetch(`/promo_trade_update_user/${userId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updatedUserData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert('Данные пользователя успешно обновлены');
+                    } else {
+                        alert('Ошибка: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Ошибка сети: ' + error.message);
+                }
+            }
+
+
+
+            // Функция для открытия статистики пользователя
+            async function viewUserStatistics(userId) {
+                try {
+                    const response = await fetch(`/promo_trade_user_stats/${userId}`);
+                    const statsData = await response.json();
+
+                    const statsMenu = document.createElement('div');
+                    statsMenu.className = 'user-stats';
+                    statsMenu.innerHTML = `
+                        <button id="backToListBtn">Назад к списку</button>  <!-- Кнопка "Назад" -->
+                        <h3>Статистика пользователя: ${statsData.username}</h3>
+                        <p><strong>Количество сделок:</strong> ${statsData.trades_count}</p>
+                        <p><strong>Общая сумма сделок:</strong> ${statsData.total_trade_amount}</p>
+                        <p><strong>Выигранные сделки:</strong> ${statsData.won_trades}</p>
+                        <p><strong>Проигранные сделки:</strong> ${statsData.lost_trades}</p>
+                    `;
+
+                    // Очистка и добавление статистики в модальное окно
+                    modal.querySelector('.modal-content').innerHTML = '';
+                    modal.querySelector('.modal-content').appendChild(statsMenu);
+
+                    // Назад к списку пользователей
+                    document.getElementById('backToListBtn').addEventListener('click', async () => {
+                        // Очищаем содержимое модального окна
+                        modal.querySelector('.modal-content').innerHTML = ''; // Очистка текущего содержимого
+                        
+                        // Восстанавливаем заголовок и элементы управления
+                        const header = document.createElement('h2');
+                        header.innerText = 'Управление пользователями';
+                        
+                        const searchInput = document.createElement('input');
+                        searchInput.type = 'text';
+                        searchInput.id = 'searchUserInput';
+                        searchInput.placeholder = 'Введите ID пользователя';
+                        
+                        const searchButton = document.createElement('button');
+                        searchButton.id = 'searchUserBtn';
+                        searchButton.innerText = 'Найти пользователя';
+                        
+                        // Создаем новый контейнер для списка пользователей
+                        const newUserList = document.createElement('ul');
+                        newUserList.id = 'userList';
+                        
+                        // Добавляем все элементы в модальное окно
+                        const modalContent = modal.querySelector('.modal-content');
+                        modalContent.appendChild(header);
+                        modalContent.appendChild(searchInput);
+                        modalContent.appendChild(searchButton);
+                        modalContent.appendChild(newUserList);
+                        
+                        // Загружаем список пользователей
+                        await loadUsers(); // Загрузить список пользователей
+
+                        // Привязываем обработчик события к кнопке поиска
+                        searchButton.addEventListener('click', searchUser);
+                    });
+
+                } catch (error) {
+                    console.error('Ошибка при загрузке статистики пользователя:', error);
+                    alert('Ошибка при загрузке статистики');
+                }
+            }
+
+
+
+            document.getElementById('saveSettingsTrade').addEventListener('click', async () => {
+                const language = document.getElementById('language').value;
+                const currency = document.getElementById('currency').value;
+
+                const settingsData = {
+                    language: language,
+                    currency: currency
+                };
+
+                try {
+                    const response = await fetch(`/promocodeUpdateTrade/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки успешно обновлены");
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            });
+        }
+
+        // Функция для загрузки настроек BlaBlaCar
+        async function loadBlaBlaCarSettings() {
+            const container = document.getElementById('promo-settings');
+            const params = new URLSearchParams(window.location.search);
+            const promocodeId = params.get('promocodeId');
+
+            // Загружаем текущие настройки промокода с сервера
+            let config;
+            let promocodeData;
+            try {
+                const response = await fetch(`/promocode/${promocodeId}`);
+                promocodeData = await response.json();
+                console.log('Полученные данные промокода:', promocodeData);
+
+                // Преобразуем JSON строку в объект
+                try {
+                    config = JSON.parse(promocodeData.config);
+                    console.log('Распарсенный конфиг:', config);
+                } catch (jsonError) {
+                    console.error('Ошибка парсинга JSON:', jsonError);
+                    alert('Ошибка обработки данных конфигурации');
+                    return;
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных:', error);
+                alert('Ошибка при загрузке настроек');
+                return;
+            }
+
+            container.innerHTML = `
+                <h2>Настройки BlaBlaCar</h2>
+                <label>Язык сайта</label>
+                <select id="language">
+                    <option value="EN">Английский EN</option>
+                    <option value="DE">Немецкий DE</option>
+                    <option value="RU">Русский RU</option>
+                    <option value="UA">Украинский UA</option>
+                    <option value="KZ">Казахстанский KZ</option>
+                    <option value="AZ">Азербайджанский AZ</option>
+                </select>
+                <label>Валюта</label>
+                <select id="currency">
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                    <option value="RUB">RUB</option>                      
+                    <option value="UAH">UAH</option>
+                    <option value="AED">AED</option>
+                    <option value="KZT">KZT</option>
+                    <option value="AZN">AZN</option>                    
+                </select>
+                <button class="save-button" id="saveSettingsBlaBla">Сохранить изменения</button>
+                `;
+
+        
+
+            document.getElementById('language').value = config.language;
+            document.getElementById('currency').value = config.currency;
+            
+            document.getElementById('saveSettingsBlaBla').addEventListener('click', async () => {
+                const language = document.getElementById('language').value;
+                const currency = document.getElementById('currency').value;
+
+                const settingsData = {
+                    language: language,
+                    currency: currency
+                };
+
+                try {
+                    const response = await fetch(`/promocodeUpdateTrade/${promocodeId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(settingsData)
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert("Настройки успешно обновлены");
+                    } else {
+                        alert("Ошибка: " + result.message);
+                    }
+                } catch (error) {
+                    alert("Ошибка сети: " + error.message);
+                }
+            });
+
+        }
+    
+        
+    </script>
+
+</body>
+</html>

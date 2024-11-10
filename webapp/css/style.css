@@ -1,0 +1,699 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: black;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+video {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Равномерное распределение между верхним и нижним блоком */
+  align-items: flex-start;
+  width: 100%;
+  height: 100vh; /* Контейнер занимает всю высоту экрана */
+  padding: 20px;
+  overflow-y: auto; /* Внутренние отступы */
+}
+
+.profile-card, .info-card, .notifications, .menu {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.profile-card {
+  background: linear-gradient(to right, #2D2D2D, #A10000);
+  display: flex;
+  align-items: center;
+}
+
+.profile-card .avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: #fff;
+  margin-right: 20px;
+}
+
+.profile-card .info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.profile-card .info h1 {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.profile-card .info h2 {
+  font-size: 18px;
+  color: #999;
+  margin-bottom: 15px;
+}
+
+.profile-card .info .rank {
+  background-color: silver;
+  padding: 5px 10px;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+.info-card p, .notifications p {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.info-card .label {
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.info-card .value {
+  color: #fff;
+}
+
+.tag-card {
+  display: flex;
+  align-items: center; /* Вертикальное выравнивание */
+  flex-wrap: nowrap; /* Запрещаем перенос на новую строку */
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.tag-card .label {
+  font-weight: bold;
+  margin-right: 5px;
+  white-space: nowrap; /* Чтобы текст метки не переносился */
+}
+
+.tag-card input {
+  flex-grow: 1; /* Инпут будет занимать доступное пространство */
+  min-width: 0; /* Позволяет инпуту сокращаться до минимума */
+  max-width: 100%; /* Инпут не будет шире контейнера */
+  border: 2px solid;
+  border-radius: 5px;
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.0);
+  font-size: 18px;
+  color: #fff;
+  margin-right: 10px; /* Отступ между инпутом и кнопкой */
+}
+
+.tag-card button {
+  flex-shrink: 0; /* Кнопка не будет уменьшаться слишком сильно */
+  font-size: 18px;
+  background-color: #A10000;
+  color: #ffffff;
+  border: none;
+  padding: 5px 20px;
+  border-radius: 5px;
+  white-space: nowrap; /* Чтобы текст внутри кнопки не переносился */
+}
+
+
+.notifications-label {
+  text-align: left;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+}
+
+.notifications .label {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.notifications p {
+  font-size: 18px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.toggle .label {
+  font-size: 18px;
+}
+
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 25px;
+}
+
+.toggle-switch input {
+  display: none;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 25px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 19px;
+  width: 19px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #007BFF;
+}
+
+input:checked + .slider:before {
+  transform: translateX(25px);
+}
+
+.menu {
+  display: flex;
+  justify-content: space-around; /* Равномерное распределение иконок */
+  margin-top: 20px; /* Отступ сверху */
+  padding: 10px 0; /* Внутренние отступы сверху и снизу */
+}
+
+.menu a {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px; /* Ширина иконок */
+  height: 60px; /* Высота иконок */
+}
+
+.menu img {
+  max-width: 100%; /* Иконка не выходит за пределы контейнера */
+  height: auto;
+  padding: 10px; /* Внутренний отступ для иконок */
+}
+
+/* ДИЗАЙН ДЛЯ PROMOCODE.HTML */
+
+.promo-create {
+  background: linear-gradient(to right, #2D2D2D, #A10000);
+  display: flex;
+  flex-direction: column; /* Элементы располагаются по вертикали */
+  align-items: center;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.promo-create .label {
+  font-weight: bold;
+  margin-bottom: 10px; /* Отступ между меткой и контейнером */
+  white-space: nowrap;
+}
+
+.input-container {
+  display: flex;
+  align-items: center; /* Выравниваем по вертикали */
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.input-container input {
+  flex-grow: 1; /* Инпут растягивается на доступное пространство */
+  border: 2px solid;
+  border-radius: 5px;
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.0);
+  font-size: 18px;
+  color: #fff;
+  margin-right: 10px; /* Отступ между инпутом и datalist */
+}
+
+.input-container select {
+  background-color: #2D2D2D;
+  color: white;
+  border: 2px solid white;
+  border-radius: 5px;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 18px;
+  width: 150px;
+}
+
+.promo-create button {
+  margin-top: 10px;
+  font-size: 18px;
+  background-color: #2D2D2D;
+  color: #ffffff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  white-space: nowrap;
+  align-self: center; /* Центрируем кнопку */
+}
+
+.promo-create input:focus {
+  outline: none; /* Убираем стандартную обводку при фокусе */
+}
+
+
+.promo-button-container {
+  width: 100%;
+  max-width: 700px;
+}
+
+
+.promo-control {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column; /* Размещаем кнопки вертикально */
+  align-items: center; /* Центрируем кнопки по горизонтали */
+}
+
+.promo-button {
+  font-size: 18px;
+  background-color: #A10000;
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%; /* Кнопка растягивается на всю ширину контейнера */
+  margin-bottom: 10px;
+  margin-top: 10px; /* Увеличиваем отступ между кнопками */
+  text-align: center;
+  box-sizing: border-box; /* Учитываем padding и border в общей ширине */
+  max-width: 700px; /* Ограничение по ширине, чтобы не превышать размеры контейнера */
+}
+
+.promo-menu {
+  color: white;
+  border-radius: 5px;
+  display: none; /* По умолчанию скрыто */
+  width: 100%; /* Меню растягивается на всю ширину контейнера */
+  max-width: 700px;
+  text-align: center;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out; /* Переход для высоты и внутреннего отступа */
+  padding: 0; /* Убираем отступы по умолчанию */
+}
+
+.promo-menu-open {
+  color: white;
+  border-radius: 5px;
+  display: block;
+  width: 100%; /* Меню растягивается на всю ширину контейнера */
+  max-width: 700px;
+  text-align: center;
+  max-height: 300px; /* Максимальная высота, когда меню раскрыто */
+  overflow: hidden;
+  padding: 10px 20px; /* Добавляем отступы, когда меню открыто */
+  transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
+}
+
+.promo-menu button {
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #2D2D2D;
+  color: white;
+  width: 100%; /* Кнопки внутри меню растягиваются на всю ширину */
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 5px;
+  font-size: 18px;  
+  font-weight: bold;
+}
+
+.promo-button-container {
+  width: 100%; /* Контейнер растягивается на всю ширину */
+  max-width: 700px; /* Ограничиваем максимальную ширину */
+}
+
+/* ДИЗАЙН ДЛЯ EDIT_PROMO.HTML */
+
+.base-promocode {
+  background: linear-gradient(to right, #2D2D2D, #A10000);
+  display: flex;
+  flex-direction: column; /* Элементы располагаются по вертикали */
+  align-items: center;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+  color: white; /* Белый шрифт для основной страницы */
+}
+
+.base-promocode label {
+  font-weight: bold;
+  margin-bottom: 10px; /* Отступ между меткой и контейнером */
+  white-space: nowrap;
+  color: white;
+}
+
+.promo-edit {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column; /* Размещаем кнопки вертикально */
+  align-items: center; /* Центрируем кнопки по горизонтали */
+}
+
+.promo-edit label {
+  margin-top: 5px;
+}
+
+.promo-edit input {
+  flex-grow: 1; /* Инпут растягивается на доступное пространство */
+  border: 2px solid;
+  border-radius: 5px;
+  border-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.0);
+  font-size: 18px;
+  color: #fff; /* Цвет текста для инпутов */
+}
+
+.save-button {
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #A10000;
+  color: white;
+  width: 60%; /* Кнопки внутри меню растягиваются на всю ширину */
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;  
+  font-weight: bold;
+}
+
+.promo-edit button {
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #2D2D2D;
+  color: white;
+  width: 80%; /* Кнопки внутри меню растягиваются на всю ширину */
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 5px;
+  font-size: 14px;  
+  font-weight: bold;
+}
+
+.promo-edit select {
+  background-color: #2D2D2D;
+  color: white;
+  border: 2px solid white;
+  border-radius: 5px;
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 18px;
+  width: 200px;
+}
+
+/* Стили для модального окна */
+.modal-block {
+  width: 100%;
+  max-width: 700px;
+  display: flex;
+  flex-direction: column; /* Размещаем кнопки вертикально */
+  align-items: center; /* Кнопки внутри меню растягиваются на всю ширину */
+}
+
+.modal {
+  display: none; /* По умолчанию модальное окно скрыто */
+  position: fixed;
+  z-index: 1000; /* Модальное окно должно быть выше остальных элементов */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Стили для содержимого модального окна */
+.modal-content {
+  background-color: #fff;
+  margin-top: 40px;
+  margin-left: 10%;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 80%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: flex;
+  flex-direction: column; /* Размещаем кнопки вертикально */
+  align-items: center;
+  overflow: hidden;
+  color: black; /* Черный шрифт для модального окна */
+}
+
+/* Стили для кнопки закрытия модального окна */
+.close {
+  color: black;
+  position: relative; /* Сохраняем relative */
+  font-size: 24px;
+  margin-left: auto; /* Добавляем это для перемещения кнопки вправо */
+  cursor: pointer;
+}
+
+/* Стили для кнопок "Открыть модальное окно" */
+.open-modal {
+  padding: 10px 20px;
+  margin: 10px 0;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Эффект при наведении на кнопку */
+.open-modal:hover {
+  background-color: #0056b3;
+}
+
+/* Стили для кнопок "Сохранить" в модальном окне */
+.save {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* Эффект при наведении на кнопку "Сохранить" */
+.save:hover {
+  background-color: #218838;
+}
+
+/* Вспомогательные стили */
+.modal input {
+  width: 100%;
+  padding: 10px;
+  color: black !important; /* Черный шрифт для инпутов в модальном окне */
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.modal label {
+  color: black !important; /* Черный цвет меток в модальном окне */
+  font-weight: bold;
+}
+
+.modal h3 {
+  color: black !important; /* Черный цвет заголовка в модальном окне */
+}
+
+.service_list {
+  width: 100%; /* Ширина контейнера */
+}
+
+.service-item {
+  display: flex; /* Используем flexbox для выравнивания */
+  align-items: center; /* Вертикальное центрирование элементов */
+  padding: 10px; /* Внутренние отступы */
+  margin: 5px 0; /* Отступы между элементами списка */
+  color: black; /* Цвет текста */
+}
+
+.service-item span {
+  margin-right: 10px; /* Отступ справа для текста */
+  flex-grow: 1; /* Позволяет тексту занимать доступное пространство */
+  text-align: left; /* Выравнивание текста влево */
+}
+
+.delete-service button{
+  background: none; /* Убираем фон кнопки */
+  border: none; /* Убираем рамку */
+  cursor: pointer; /* Указываем курсор как указатель */
+  color: black; /* Цвет кнопки */
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #2D2D2D;
+  color: white;
+  width: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.exhibition-item label,
+.exhibition-item input,
+.exhibition-item textarea {
+  display: block; /* Отображение каждого элемента на новой строке */
+  margin-bottom: 10px;
+}
+
+.exhibition-item h3 {
+  margin-top: 10px;
+}
+
+/* Стили для тумблера */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;  /* ширина всего тумблера */
+  height: 25px; /* высота всего тумблера */
+}
+
+.switch input {
+  opacity: 0; /* прячем исходный input */
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 25px; /* закругленные углы для внешней части тумблера */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 19px; /* высота ползунка */
+  width: 19px;  /* ширина ползунка */
+  left: 3px;    /* отступ слева */
+  bottom: 3px;  /* отступ снизу */
+  background-color: white;
+  border-radius: 50%; /* делаем круглый ползунок */
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #007BFF; /* цвет фона при активном тумблере */
+}
+
+input:checked + .slider:before {
+  transform: translateX(25px); /* перемещение ползунка вправо при активном тумблере */
+}
+
+/* СТИЛИ ДЛЯ INFORMATION.HTML */
+
+.rank_information {
+  background: linear-gradient(to right, #2D2D2D, #A10000);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.rank_information .label {
+  font-weight: bold;
+}
+
+.rank_information label {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.project_information {
+  display: flex;
+  align-items: center; /* Вертикальное выравнивание */
+  flex-wrap: nowrap; /* Запрещаем перенос на новую строку */
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+
+/* СТИЛИ ДЛЯ ADMINS.HTML */
+
+.admins_information {
+  background: linear-gradient(to right, #2D2D2D, #A10000);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-radius: 15px;
+  padding: 20px;
+  width: 100%;
+  max-width: 700px;
+}
