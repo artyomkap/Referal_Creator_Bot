@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <video playsinline autoplay muted loop poster="">
+        <source src="./media/videos/244fb7b9916aed280fa86e465ba74e2b.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Контейнер для контента -->
+    <div class="container">
+        <!-- Профиль -->
+        <div class="profile-card">
+            <div class="avatar" id="avatar"></div>
+            <div class="info">
+                <h1 id="username">#</h1>
+                <h2 id="tg_username">@</h2>
+                <div class="rank" id="rank">Ранг: </div>
+            </div>
+        </div>
+        
+        <h1 class="notifications-label">Личная статистика</h1>
+        <!-- Информация о пользователе -->
+        <div class="info-card">
+            <p><span class="label">Telegram ID:</span><span class="value" id="tg_id">...</span></p>
+            <p><span class="label">С нами уже:</span><span class="value" id="days_with_us">...</span></p>
+            <p><span class="label">Сумма заработка:</span><span class="value" id="balance">...</span></p>
+            <p><span class="label">Кол-во рефералов:</span><span id="mamont_count">...</span></p>
+            <p><span class="label">Ваша Группа:</span><span class="value" id="group">...</span></p>
+        </div>
+        <h1 class="notifications-label">Изменение Тэга</h1>
+
+        <div class="tag-card">
+            <span class="label">Ваш тэг:</span>
+            <input id="input-tag" type="text" placeholder="Новый тег">
+            <button class="button-tag" onclick="updateTag()">✓</button>
+        </div>
+
+        <!-- Меню -->
+        <div class="menu">
+            <a id="home-link" href="index.html">
+                <img src="./media/images/free-icon-font-money-check-7928280 1.svg" alt="Promocode Icon">
+            </a>
+            <a id="promocode-link" href="promocode.html">
+                <img src="./media/images/free-icon-font-shield-check-3917625 1.svg" alt="Security Icon">
+            </a>
+            <a id="bag-link" href="#bag">
+                <img src="./media/images/free-icon-font-briefcase-3916670 1.svg" alt="Bag Icon">
+            </a>
+            <a id="scroll-link" href="#scroll">
+                <img src="./media/images/free-icon-font-list-3917113 1.svg" alt="Scroll Icon">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Функция для получения параметров из URL
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                tg_id: params.get('id')
+            };
+        }
+
+        // Функция для получения данных пользователя
+        async function fetchUserData(tg_id) {
+            try {
+                const response = await fetch(`/user/${tg_id}`);
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки данных');
+                }
+                const data = await response.json();
+                console.log(data);
+                
+                // Подставляем данные в соответствующие элементы
+                document.getElementById('avatar').style.backgroundImage = `url(${data.avatar_url})`;
+                document.getElementById('username').textContent = `#${data.tag || 'Не создан'}`;
+                document.getElementById('tg_username').textContent = `@${data.username || 'Неизвестный'}`;
+                document.getElementById('tg_id').textContent = data.tg_id;
+                document.getElementById('rank').textContent = `Ранг: ${data.group_id || 'без ранга'}`;
+                document.getElementById('days_with_us').textContent = `${data.join_day} дня (-ей)`;
+                document.getElementById('balance').textContent = `${data.balance} ${data.currency}`;
+                document.getElementById('mamont_count').textContent = `${data.mamonts_number}`;
+                document.getElementById('group').textContent = data.role_id || 'Неизвестно';
+                // Уведомления
+                document.getElementById('payment_notifications').checked = data.payment_notifications;
+                document.getElementById('navigation_notifications').checked = data.navigation_notifications;
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        }
+
+        // Функция для расчета количества дней с нами
+
+        // Инициализация с получением данных
+        window.onload = function() {
+            const { tg_id } = getUrlParams();
+            if (tg_id) {
+                fetchUserData(tg_id);
+            } else {
+                console.error('TG ID не найден в URL');
+            }
+        }
+    </script>
+    <script>
+
+        async function toggleNotification(type, isChecked) {
+            const params = new URLSearchParams(window.location.search);
+            const tg_id = params.get('id')
+            const url = `/user/${tg_id}/notifications`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        notification_type: type,
+                        status: isChecked
+                    })
+                });
+    
+                if (response.ok) {
+                    const result = await response.text();
+                    console.log(result); // Можно обновить UI или показать уведомление
+                } else {
+                    console.error('Ошибка при отправке запроса');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        }
+    </script>
+    <script>
+        async function updateTag() {
+            const params = new URLSearchParams(window.location.search);
+            const tg_id = params.get('id') // Замените на актуальный tg_id, либо передавайте его динамически
+            const newTag = document.getElementById('input-tag').value;
+    
+            if (!newTag) {
+                alert("Введите новый тег");
+                return;
+            }
+    
+            try {
+                const response = await fetch(`/user/${tg_id}/tag`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        new_tag: newTag
+                    }),
+                });
+    
+                if (response.ok) {
+                    // Если обновление успешно, обновляем страницу
+                    window.location.reload();
+                } else {
+                    alert("Произошла ошибка при обновлении тега");
+                }
+            } catch (error) {
+                console.error("Ошибка:", error);
+                alert("Произошла ошибка при обновлении тега");
+            }
+        }
+    </script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+
+        // Если id существует, обновляем ссылки
+        if (id) {
+            document.getElementById('home-link').href = `/?id=${id}`;
+            document.getElementById('promocode-link').href = `promocode.html/?id=${id}`;
+            document.getElementById('bag-link').href = `admins.html/?id=${id}`;
+            document.getElementById('scroll-link').href = `information.html/?id=${id}`;
+        }
+    </script>
+</body>
+</html>

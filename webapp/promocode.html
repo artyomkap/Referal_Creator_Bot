@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <video playsinline autoplay muted loop poster="">
+        <source src="/media/videos/244fb7b9916aed280fa86e465ba74e2b.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <!-- Контейнер для контента -->
+    <div class="container">
+        <!-- Создать промик -->
+        <div class="promo-create">
+            <span class="label">Создание промокода:</span>
+            <div class="input-container">
+                <input id="input-promo" type="text" placeholder="Новый промокод">
+                <select id="productName">
+
+                </select>
+            </div>
+            <button class="button-tag" onclick="createPromo()">✓</button>
+        </div>
+        
+        <!-- Управление промокодами -->
+        <h1 class="notifications-label">Управление промокодами</h1>
+        <div class="promo-control">
+
+        </div>
+        
+
+
+        <!-- Меню -->
+        <div class="menu">
+            <a id="home-link" href="index.html">
+                <img src="/media/images/free-icon-font-money-check-7928280 1.svg" alt="Promocode Icon">
+            </a>
+            <a id="promocode-link" href="">
+                <img src="/media/images/free-icon-font-shield-check-3917625 1.svg" alt="Security Icon">
+            </a>
+            <a id="bag-link" href="#bag">
+                <img src="/media/images/free-icon-font-briefcase-3916670 1.svg" alt="Bag Icon">
+            </a>
+            <a id="scroll-link" href="#scroll">
+                <img src="/media/images/free-icon-font-list-3917113 1.svg" alt="Scroll Icon">
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const params1 = new URLSearchParams(window.location.search);
+        const id = params1.get('id');
+
+        // Если id существует, обновляем ссылки
+        if (id) {
+            document.getElementById('home-link').href = `/?id=${id}`;
+            document.getElementById('promocode-link').href = ``;
+            document.getElementById('bag-link').href = `../admins.html/?id=${id}`;
+            document.getElementById('scroll-link').href = `../information.html/?id=${id}`;
+        }
+    </script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const tgId = params.get('id');
+
+        // Функция для загрузки промокодов
+        async function loadPromocodes() {
+            try {
+                if (tgId) {
+                    const response = await fetch(`/promocodes/${tgId}`);
+                    const data = await response.json();
+
+                    if (data.promocodes && data.promocodes.length > 0) {
+                        const promoControl = document.querySelector('.promo-control');
+
+                        data.promocodes.forEach(promocode => {
+                            // Создаем контейнер для промокода и меню
+                            const promoContainer = document.createElement('div');
+                            promoContainer.classList.add('promo-button-container');
+
+                            // Создаем кнопку для промокода
+                            const promoButton = document.createElement('button');
+                            promoButton.textContent = promocode.name;
+                            promoButton.classList.add('promo-button');
+                            promoButton.onclick = () => toggleMenu(promocode.id);
+
+                            // Добавляем кнопку в контейнер
+                            promoContainer.appendChild(promoButton);
+
+                            // Создаем синее меню для каждого промокода
+                            const promoMenu = document.createElement('div');
+                            promoMenu.classList.add('promo-menu');
+                            promoMenu.setAttribute('id', `promo-menu-${promocode.id}`); // Уникальный ID для каждого меню
+
+                            // Функция загрузки списка сайто
+
+                            // Добавляем кнопки "Изменить" и "Удалить"
+                            const editButton = document.createElement('button');
+                            editButton.textContent = 'Изменить';
+                            editButton.onclick = () => editPromocode(promocode.id);
+                            promoMenu.appendChild(editButton);
+
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Удалить';
+                            deleteButton.onclick = () => deletePromocode(promocode.id);
+                            promoMenu.appendChild(deleteButton);
+
+                            // Добавляем меню в контейнер
+                            promoContainer.appendChild(promoMenu);
+
+                            // Добавляем контейнер в промо-контрол
+                            promoControl.appendChild(promoContainer);
+                        });
+                    } else {
+                        document.querySelector('.promo-control').innerHTML = '<p>Промокоды отсутствуют.</p>';
+                    }
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке промокодов:', error);
+            }
+        }
+
+
+
+        function toggleMenu(promocodeId) {
+            const promoMenu = document.getElementById(`promo-menu-${promocodeId}`);
+            
+            if (promoMenu.style.display === "none" || promoMenu.style.display === "") {
+                promoMenu.style.display = "block";
+                setTimeout(() => {
+                    promoMenu.classList.add('promo-menu-open');
+                }, 10); // небольшой таймер для плавного открытия
+            } else {
+                promoMenu.classList.remove('promo-menu-open');
+                setTimeout(() => {
+                    promoMenu.style.display = "none";
+                }, 500); // даем время для завершения анимации
+            }
+        }
+
+
+        // Функция для загрузки списка сайтов
+        async function loadWebsites(menuElement) {
+            try {
+                const response = await fetch('/websiteList');
+                const data = await response.json();
+
+                data.websites.forEach(website => {
+                    const websiteButton = document.createElement('button');
+                    websiteButton.textContent = website.name;
+                    websiteButton.onclick = () => window.open(website.name, '_blank');
+                    menuElement.appendChild(websiteButton);
+                });
+            } catch (error) {
+                console.error('Ошибка при загрузке сайтов:', error);
+            }
+        }
+
+        // Функции для изменения и удаления промокода
+        function editPromocode(promocodeId) {
+            const params1 = new URLSearchParams(window.location.search);
+            const userId = params1.get('id');
+            const url = `/edit_promo/?id=${userId}&promocodeId=${promocodeId}`;
+            window.location.href = url;
+        }
+
+        async function deletePromocode(promocode_id) {
+            try {
+                const response = await fetch(`/promocodeDelete/${promocode_id}`);
+                const data = await response.json();
+                window.location.reload();
+            } catch (error) {
+                console.error('Ошибка при удалении промокода', error);
+            }
+        }
+
+
+        async function fetchPromocodeTypes() {
+            try {
+                const response = await fetch('/promocodeTypes');
+                const data = await response.json();
+                const promocodeTypes = data.promocode_types;
+
+                // Находим select элемент
+                const select = document.getElementById('productName');
+
+                // Очищаем существующие опции
+                select.innerHTML = '';
+
+                // Заполняем select новыми опциями из API
+                promocodeTypes.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.name;
+                    option.setAttribute('data-id', type.id);
+                    option.textContent = type.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Ошибка при получении типов промокодов:', error);
+            }
+        }
+        window.onload = fetchPromocodeTypes;
+        // Загрузка промокодов при загрузке страницы
+        loadPromocodes();
+    </script>
+    <script>
+        async function createPromo() {
+            const promoName = document.getElementById("input-promo").value;
+            const promoTypeElement = document.getElementById("productName");
+            const promoType = promoTypeElement.options[promoTypeElement.selectedIndex].getAttribute('data-id');
+            const params = new URLSearchParams(window.location.search);
+            const tgId = params.get('id');
+    
+            // Подготовка данных для отправки
+            const data = {
+                name: promoName,
+                type_id: promoType // Здесь ты можешь выбрать подходящий способ обработки type_id
+            };
+    
+            try {
+                const response = await fetch(`/promocodeCreate/${tgId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(data)
+                });
+    
+                // Проверка, успешно ли был создан промокод
+                const result = await response.json();
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert("Error: " + result.message);
+                }
+            } catch (error) {
+                console.error("Ошибка при создании промокода:", error);
+                alert("Произошла ошибка при создании промокода");
+            }
+        }
+    </script>
+</body>
+</html>
